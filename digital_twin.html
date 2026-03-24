@@ -254,6 +254,7 @@
             }
 
             draw(ctx, t) {
+                if (camera.zoom < 0.15) return; // Datashader culling bypass for bees
                 if (this.trail.length > 2) {
                     for (let i = 1; i < this.trail.length; i++) {
                         const a = i / this.trail.length * 0.3; ctx.beginPath(); ctx.arc(this.trail[i].x, this.trail[i].y, 1.5, 0, Math.PI*2);
@@ -410,12 +411,29 @@
             document.getElementById('graph-container').style.transform = `scale(${camera.zoom})`;
             document.getElementById('graph-container').style.transformOrigin = `${focusX}px ${focusY}px`;
 
+            // O(1) Socratic Sampling PDE
+            function calcPDE(hx, hy) {
+                let T = 0; let I = 0;
+                for(let tm of tumors) {
+                    let d2 = (hx-tm.x)**2 + (hy-tm.y)**2;
+                    if(d2 < 80000) T += tm.mass * Math.exp(-d2 / (3000 * Math.max(0.1, tm.mass/5)));
+                }
+                for(let tc of tCells) {
+                    let d2 = (hx-tc.x)**2 + (hy-tc.y)**2;
+                    if(d2 < 20000) I += 1.0 * Math.exp(-d2 / 1000);
+                }
+                return {T, I};
+            }
+
             // Draw Tri-Graph Macro Organism (Background Matrix)
             for (const h of hexes) {
                 // Socratic LOD Culling Engine: Drop off-screen calculations completely
                 if(h.x < minX || h.x > maxX || h.y < minY || h.y > maxY) continue;
                 
                 h.glow *= 0.92;
+                
+                let pde = {T: 0, I: 0};
+                if(tumors.length > 0 || tCells.length > 0) pde = calcPDE(h.x, h.y);
                 
                 // Beeping and Booping - Living Breathing Canvas Logic
                 let breathe = 0;
@@ -464,6 +482,15 @@
                 
                 // Active Nesterov swarms light up path intensely
                 if(h.glow > 0.1) stroke = `rgba(255, 255, 255, ${h.glow})`;
+                
+                // Boltzmann Pathological PDE Topography Mapping (Necrosis and Immune Flash)
+                if(pde.T > 0.05) {
+                    fill = `rgba(15, 0, 20, ${Math.min(1.0, pde.T)})`;
+                    stroke = `rgba(150, 0, 200, ${Math.min(1.0, pde.T + 0.2)})`;
+                }
+                if(pde.I > 0.05) {
+                    fill = `rgba(255, 215, 0, ${Math.min(1.0, pde.I * 0.5)})`;
+                }
                 
                 // Hardware Stabilization: Bypass 6-sided vector paths when zoomed out to render instantly
                 if (isMacro) {
@@ -520,7 +547,21 @@
             }
             cCtx.stroke(); cCtx.shadowBlur = 0;
 
+            // T-Cell Immune Response Factory Matrix (Receptor Spawns Hunters when anomalies detected)
+            if(tumors.length > 0 && Math.random() < 0.08 && tCells.length < 80) {
+                tCells.push(new TCellPredator(focusX + (Math.random()*80-40), focusY + (Math.random()*80-40)));
+            }
+
             bgCtx.restore();
+
+            // Socratic Kinetic Entity Updaters (Global space)
+            for (let i = tumors.length - 1; i >= 0; i--) { let tm = tumors[i]; tm.update(t); if(tm.dead) tumors.splice(i, 1); }
+            for (let i = tCells.length - 1; i >= 0; i--) { 
+                let tc = tCells[i]; tc.update(t); 
+                bgCtx.save(); bgCtx.translate(W/2, H/2); bgCtx.scale(camera.zoom, camera.zoom); bgCtx.translate(-focusX, -focusY);
+                tc.draw(bgCtx); bgCtx.restore();
+                if(tc.dead) tCells.splice(i, 1); 
+            }
 
             // Striped Bees (Top Canvas Layer) are drawn absolutely but must conform to camera math visually
             for (let i = bees.length - 1; i >= 0; i--) { 
@@ -528,15 +569,15 @@
                 bgCtx.save();
                 bgCtx.translate(W/2, H/2); bgCtx.scale(camera.zoom, camera.zoom); bgCtx.translate(-focusX, -focusY);
                 // Stop rendering tiny bees at extreme macro zoom
-                if(camera.zoom > 0.15) b.draw(bgCtx, t); 
+                b.draw(bgCtx, t); 
                 bgCtx.restore();
                 if(b.dead) bees.splice(i, 1); 
             }
 
             // Hive Status HUD
-            if (timeTick % 60 === 0) {
+            if (timeTick % 10 === 0) {
                 const litCount = hexes.filter(h => h.glow > 0.1 && h.x > minX && h.x < maxX && h.y > minY && h.y < maxY).length;
-                document.getElementById('hud').innerHTML = `SOCRATIC LOD SYSTEM ACTIVE<br>MACRO HEXES BUFFERED: ${hexes.length}<br>BEES IN FLIGHT: ${bees.length}<br>FFT STREAM: ${superimposedValue.toFixed(2)}<br>VISIBLE HONEY CELLS: ${litCount}<br>ZOOM RATIO: ${camera.zoom.toFixed(4)}`;
+                document.getElementById('hud').innerHTML = `SOCRATIC LOD SYSTEM ACTIVE<br>MACRO HEXES BUFFERED: ${hexes.length}<br>NESETROV SWARMS: ${bees.length}<br>FFT STREAM: ${superimposedValue.toFixed(2)}<br>ZOOM RATIO: ${camera.zoom.toFixed(4)}<br>---<br>TUMOR KINETICS: ${tumors.length}<br>T-CELL PREDATORS: ${tCells.length}`;
             }
 
             timeTick++;
