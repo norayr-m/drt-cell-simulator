@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DRT Phase 4: Claude Canvas + Hive-Buzz Master Fusion</title>
+    <style>
+        body { margin: 0; background: #1a1a2e; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        
+        .header { position: absolute; top: 20px; text-transform: uppercase; font-size: 20px; font-weight: bold; letter-spacing: 2px; color: #f0c040; z-index: 50; text-align: center;}
+        .sub-header { font-size: 11px; color: #34c759; letter-spacing: 2px; margin-top: 5px; }
+        
+        .nav-link { border: 1px solid; border-radius: 3px; padding: 6px 12px; font-size: 11px; cursor: pointer; text-decoration: none; font-weight: bold; pointer-events: auto; display: inline-block;}
+        .nav-link:hover { background: rgba(255,255,255,0.1); }
+        
+        .controls { position: absolute; bottom: 30px; z-index: 50; display: flex; gap: 15px;}
+        .btn { padding: 8px 20px; background: rgba(30,30,50,0.8); color: #f0c040; border: 1px solid #f0c040; border-radius: 6px; font-family: monospace; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s;}
+        .btn:hover { background: rgba(240,192,64,0.2); box-shadow: 0 0 15px rgba(240,192,64,0.4);}
+        .btn.active { color: #ff3b30; border-color: #ff3b30; background: rgba(240,192,64,0.1); box-shadow: 0 0 15px rgba(255,59,48,0.4);}
+
+        /* GRAPH CONTAINER - FULL CLAUDE CANVAS */
+        #graph-container { position: relative; width: 800px; height: 750px; z-index: 10; margin-top: 30px; pointer-events: none;}
+        
+        .node { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s; z-index: 20; pointer-events: none;}
+        .n-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0,0,0,0.8);}
+        .n-sub { font-size: 10px; color: #fff; text-shadow: 0 0 5px rgba(0,0,0,0.8);}
+        .n-canvas { width: 100px; height: 30px; margin-top: 5px; border-radius: 4px; pointer-events: none; opacity: 0;}
+
+        /* Removed Borders from the Outer/Center DOM boxes to strip physical boundaries */
+        .outer-node { width: 160px; height: 160px; }
+        #node-hypo { top: 10px; left: 120px; color: #0a84ff; }
+        #node-pit { top: 10px; right: 120px; color: #ff3b30; }
+        #node-adr { bottom: 10px; left: 320px; color: #34c759; }
+
+        #node-center { top: 260px; left: 280px; width: 240px; height: 240px; }
+        .center-canvas { width: 180px; height: 60px; margin-top: 15px; border-radius: 6px; background: rgba(0,0,0,0.6); border: 1px solid rgba(240,192,64,0.3);}
+        
+        .fft-readout { display: flex; gap: 10px; margin-top: 15px; width: 80%; justify-content: center;}
+        .fft-bulb { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #555; background: #222; transition: 0.1s; display:flex; align-items:center; justify-content:center; color:#000; font-size:8px; font-weight:bold;}
+
+        #bgCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; transition: filter 2s ease-in-out; }
+        
+        #hud { position: fixed; top: 120px; left: 20px; color: #f0c040; font-size: 14px; text-shadow: 0 0 10px rgba(240,192,64,0.5); z-index: 10; line-height: 1.6; transition: opacity 2s; }
+        
+        /* CINEMATIC BACH MODE */
+        body.cinematic-mode .header { opacity: 0.05; transition: 3s ease; }
+        body.cinematic-mode #hud { opacity: 0.1; transition: 3s ease; }
+        body.cinematic-mode .controls { opacity: 0.2; transition: 3s ease; }
+        body.cinematic-mode #bgCanvas { filter: brightness(0.8) contrast(1.1); }
+        body.cinematic-mode .node { box-shadow: 0 0 60px rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        THE BIO BRAIN V4
+        <div class="sub-header" style="color:#2ad0ff;">CLAUDE CANVAS FUSION · ORIGINAL YELLOW HONEYCOMB AESHTETIC</div>
+        
+        <div style="display:flex; gap:10px; margin-top:15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; justify-content:center; pointer-events:auto;">
+            <a href="generator.html" class="nav-link" style="color:#ff3b30; border-color:#ff3b30;">01 COMPOSER</a>
+            <a href="scanner.html" class="nav-link" style="color:#ff9f0a; border-color:#ff9f0a;">02 SCANNER</a>
+            <a href="pipeline.html" class="nav-link" style="color:#e07060; border-color:#e07060;">03 PIPELINE</a>
+            <a href="cell_simulator.html" class="nav-link" style="color:#f0c040; border-color:#f0c040; background:rgba(240,192,64,0.1);">04 BIO BRAIN</a>
+            <a href="harmonic_solver.html" class="nav-link" style="color:#0a84ff; border-color:#0a84ff;">05 ORBITAL SOLVER</a>
+            <a href="supernova_solver.html" class="nav-link" style="color:#d0b060; border-color:#d0b060;">06 SUPERNOVA 3D</a>
+        </div>
+    </div>
+
+    <div id="hud">INIT BIO BRAIN...</div>
+
+    <canvas id="bgCanvas"></canvas>
+
+    <div id="graph-container">
+        <!-- OUTER 1: HYPOTHALAMUS -->
+        <div class="node outer-node" id="node-hypo">
+            <div class="n-title">HYPOTHALAMUS</div>
+            <div class="n-sub">CRH ➔ 150Hz</div>
+            <canvas class="n-canvas" id="cvs-hypo"></canvas>
+        </div>
+
+        <!-- OUTER 2: PITUITARY -->
+        <div class="node outer-node" id="node-pit">
+            <div class="n-title">PITUITARY</div>
+            <div class="n-sub">ACTH ➔ 250Hz</div>
+            <canvas class="n-canvas" id="cvs-pit"></canvas>
+        </div>
+
+        <!-- OUTER 3: ADRENAL -->
+        <div class="node outer-node" id="node-adr">
+            <div class="n-title">ADRENAL GLAND</div>
+            <div class="n-sub">CORTISOL ➔ 350Hz</div>
+            <canvas class="n-canvas" id="cvs-adr"></canvas>
+        </div>
+
+        <!-- CENTER: RECEPTOR -->
+        <div class="node" id="node-center">
+            <div class="n-title">TARGET CELL / RECEPTOR</div>
+            <div class="n-sub" style="color:#aaa;">SUPERIMPOSED BIOLOGICAL ETHER</div>
+            <canvas class="center-canvas" id="cvs-blood"></canvas>
+            <div style="font-size: 9px; margin-top:10px; color:#555;">RECEPTOR FFT DE-COMPOSER</div>
+            <div class="fft-readout">
+                <div style="display:flex; flex-direction:column; align-items:center; gap:5px;"><div class="fft-bulb" id="bulb-hypo"></div><span style="font-size:8px; color:#0a84ff;">CRH</span></div>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:5px;"><div class="fft-bulb" id="bulb-pit"></div><span style="font-size:8px; color:#ff3b30;">ACTH</span></div>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:5px;"><div class="fft-bulb" id="bulb-adr"></div><span style="font-size:8px; color:#34c759;">CORT</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn" id="playBachBtn">♪ SING BACH IN CORTISOL</button>
+    </div>
+
+    <script>
+        const nodes = {
+            'hypo': { active: 0, hz: 261.63, color: '#0a84ff', type: 'nerve', el: document.getElementById('node-hypo'), cvs: document.getElementById('cvs-hypo') },
+            'pit':  { active: 0, hz: 311.13, color: '#ff3b30', type: 'blood', el: document.getElementById('node-pit'), cvs: document.getElementById('cvs-pit') },
+            'adr':  { active: 0, hz: 392.00, color: '#34c759', type: 'lymph', el: document.getElementById('node-adr'), cvs: document.getElementById('cvs-adr') },
+            'center': { active: 0, hz: 0, color: '#f0c040', el: document.getElementById('node-center'), cvs: document.getElementById('cvs-blood') }
+        };
+
+        const freqMap = {
+            1: { note: 'C4', hz: 261.63, gland: 'hypo' }, 2: { note: 'D4', hz: 293.66, gland: 'hypo' }, 3: { note: 'Eb4', hz: 311.13, gland: 'pit' },
+            4: { note: 'F4', hz: 349.23, gland: 'pit' }, 5: { note: 'G4', hz: 392.00, gland: 'adr' }, 6: { note: 'Ab4', hz: 415.30, gland: 'adr' },
+            7: { note: 'B3', hz: 246.94, gland: 'hypo' }, 0: { note: 'REST', hz: 0, gland: null }
+        };
+
+        let isSequencing = false;
+        const bachSequence = [[1, 5], [0], [7, 3], [0], [1, 4], [0], [5, 2], [0], [6, 1], [1, 7], [7, 5], [1], [2], [5, 3], [0], [1], [7, 4], [1], [2], [4, 6], [3], [2], [3, 5], [0]];
+        let playhead = 0; let audioCtx;
+
+        // HIVE-BUZZ BACKGROUND LOGIC + SOCRATIC INIFNITE LOD CAMERA
+        const bgCvs = document.getElementById('bgCanvas');
+        const bgCtx = bgCvs.getContext('2d');
+        let W, H;
+        const hexes = [];
+        const hexR = 28;
+        const hexH = hexR * Math.sqrt(3);
+
+        const camera = { zoom: 1.0, targetZoom: 1.0 };
+        window.addEventListener('wheel', (e) => {
+            camera.targetZoom *= e.deltaY > 0 ? 0.85 : 1.15;
+            camera.targetZoom = Math.max(0.015, Math.min(camera.targetZoom, 2.0));
+        });
+
+        function resize() {
+            W = bgCvs.width = innerWidth; H = bgCvs.height = innerHeight;
+            const cols = Math.ceil(W / (hexR * 1.5)); const rows = Math.ceil(H / hexH);
+            hexes.length = 0;
+            
+            // Generate DOM bounding rects to map the procedural Canvas arrays organically beneath the UI elements
+            for(let k in nodes) {
+                const rect = nodes[k].el.getBoundingClientRect();
+                nodes[k].cx = rect.left + rect.width/2;
+                nodes[k].cy = rect.top + rect.height/2;
+            }
+
+            // Streamlined Infinite World Generation map (-2 to +2 screens) to prevent extreme Memory GC lockups
+            for (let r = -rows * 2; r < rows * 2; r++) {
+                for (let q = -cols * 2; q < cols * 2; q++) {
+                    const x = q * hexR * 1.5; const y = r * hexH + (q % 2 ? hexH / 2 : 0);
+                    
+                    let terrain = 'base';
+                    let gland = null;
+
+                    // Execute Geometric Self-Similarity bounds
+                    for(let k in nodes) {
+                        let dx = x - nodes[k].cx, dy = y - nodes[k].cy;
+                        let dist = Math.sqrt(dx*dx + dy*dy);
+                        // Center is 120px radius, peripherals are 90px radius
+                        let radius = (k === 'center') ? 120 : 90;
+                        if(dist < radius) {
+                            gland = k;
+                            terrain = 'gland';
+                            break;
+                        }
+                    }
+                    
+                    // Universal Infinite Background
+                    if(!gland) {
+                        terrain = 'base';
+                    }
+                    
+                    hexes.push({ x, y, glow: 0, terrain, gland, honey: false, pulse: Math.random() * Math.PI * 2 });
+                }
+            }
+        }
+        window.addEventListener('resize', resize); resize();
+
+        function drawHex(x, y, r, fill, stroke, alpha) {
+            bgCtx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                // Removed the Pointy-Topped (- Math.PI / 6) offset
+                // Now perfectly aligns with the Flat-Topped (1.5 * hexR) coordinate math
+                const a = Math.PI / 3 * i;
+                const px = x + r * Math.cos(a); const py = y + r * Math.sin(a);
+                i === 0 ? bgCtx.moveTo(px, py) : bgCtx.lineTo(px, py);
+            }
+            bgCtx.closePath();
+            if (fill) { bgCtx.fillStyle = fill; bgCtx.globalAlpha = alpha || 1; bgCtx.fill(); bgCtx.globalAlpha = 1; }
+            if (stroke) { bgCtx.strokeStyle = stroke; bgCtx.lineWidth = 1; bgCtx.stroke(); }
+        }
+
+        // HZ SPECTROSCOPY FLIGHT BEES
+        class Bee {
+            constructor(startX, startY, targetEl, glowColorHex, hz) {
+                this.x = startX; this.y = startY;
+                this.hz = hz || 100;
+                this.vx = 0; this.vy = 0; // Pure vector start
+                this.wingPhase = Math.random() * Math.PI * 2; this.wavePhase = 0;
+                this.size = 3 + Math.random() * 2;
+                this.trail = []; this.targetRect = targetEl.getBoundingClientRect(); this.dead = false;
+                this.gC = glowColorHex; // Graph Payload specific color
+            }
+
+            update(t) {
+                const tx = this.targetRect.left + this.targetRect.width/2;
+                const ty = this.targetRect.top + this.targetRect.height/2;
+                const dx = tx - this.x; const dy = ty - this.y;
+                const d = Math.sqrt(dx*dx + dy*dy) || 1;
+
+                if(d < 60) { this.dead = true; nodes.center.active = Math.min(1.0, nodes.center.active + 0.3); return; }
+
+                const nx = dx / d; const ny = dy / d;
+                
+                // Biological Spectroscopy Vector Flight Math
+                // High Hz = Extremely tight, fast oscillation sine wave across the travel vector
+                const waveFreq = (this.hz / 100) * 0.25; 
+                this.wavePhase += waveFreq;
+                
+                // Orthogonal force to create the sine wave perpendicular to the path
+                const amplitude = 1.8;
+                const orthoForce = Math.sin(this.wavePhase) * amplitude;
+                
+                // Constant forward velocity + strict sine wave perpendicular force
+                this.vx += nx * 0.3 + (-ny * orthoForce);
+                this.vy += ny * 0.3 + (nx * orthoForce);
+                
+                // Organic flight friction
+                this.vx *= 0.92; this.vy *= 0.92;
+
+                this.x += this.vx; this.y += this.vy;
+                this.trail.push({ x: this.x, y: this.y }); if (this.trail.length > 20) this.trail.shift();
+                this.wingPhase += 0.6;
+
+                // Light up the Tri-Graph organic terrain paths beneath the swarm
+                for (const h of hexes) {
+                    const hx = h.x - this.x, hy = h.y - this.y;
+                    if (hx*hx + hy*hy < 1500) { h.glow = Math.min(1.0, h.glow + 0.15); }
+                }
+            }
+
+            draw(ctx, t) {
+                if (this.trail.length > 2) {
+                    for (let i = 1; i < this.trail.length; i++) {
+                        const a = i / this.trail.length * 0.3; ctx.beginPath(); ctx.arc(this.trail[i].x, this.trail[i].y, 1.5, 0, Math.PI*2);
+                        ctx.fillStyle = this.gC; ctx.globalAlpha = a; ctx.fill(); ctx.globalAlpha = 1.0;
+                    }
+                }
+                const s = this.size; ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(Math.atan2(this.vy, this.vx));
+                const wingFlap = Math.sin(this.wingPhase) * 0.6;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.beginPath(); ctx.ellipse(-1, -s * (0.6 + wingFlap), s * 0.6, s * 0.9, -0.3, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(-1, s * (0.6 + wingFlap), s * 0.6, s * 0.9, 0.3, 0, Math.PI * 2); ctx.fill();
+                
+                ctx.fillStyle = this.gC; // Dynamic payload body
+                ctx.beginPath(); ctx.ellipse(0, 0, s * 1.2, s * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#111'; for (let i = -1; i <= 1; i++) { ctx.fillRect(i * s * 0.5 - 1, -s * 0.6, 2, s * 1.2); }
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(s * 1.1, 0, s * 0.4, 0, Math.PI * 2); ctx.fill();
+                
+                const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 3);
+                ctx.globalAlpha = 0.5;
+                grad.addColorStop(0, this.gC); grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(0, 0, s * 3, 0, Math.PI * 2); ctx.fill();
+                ctx.globalAlpha = 1.0;
+                ctx.restore();
+            }
+        }
+
+        let bees = [];
+        let bloodBuffer = Array(200).fill(0);
+        let timeTick = 0;
+
+        // Claude Canvas Inner Node Logic - The Inner UI Waves
+        function drawInnerNode(ctxObj, nodeData, tick) {
+            let innerCtx = nodeData.cvs.getContext('2d');
+            nodeData.cvs.width = nodeData.cvs.clientWidth; nodeData.cvs.height = nodeData.cvs.clientHeight;
+            innerCtx.clearRect(0,0,nodeData.cvs.width,nodeData.cvs.height);
+            
+            // Draw diverse, hz-scaled sine waves that strobe dynamically matching V1
+            innerCtx.beginPath(); innerCtx.strokeStyle = nodeData.color; innerCtx.lineWidth = 2;
+            innerCtx.shadowColor = nodeData.color; innerCtx.shadowBlur = nodeData.active * 15;
+            
+            // Map the large Bach Hz values down to a sane oscillation speed (like V1's 1.5, 2.5, 3.5)
+            let baseFreq = (nodeData.hz / 100) * 0.1;
+            
+            for(let px = 0; px < nodeData.cvs.width; px++) {
+                let py = (nodeData.cvs.height/2) + Math.sin((px + tick) * baseFreq) * ((nodeData.cvs.height/2 - 2) * Math.max(0.1, nodeData.active));
+                if(px === 0) innerCtx.moveTo(px, py); else innerCtx.lineTo(px, py);
+            }
+            innerCtx.stroke(); innerCtx.shadowBlur = 0;
+            
+            // The OG V1 active background shine
+            if(nodeData.active > 0.05) {
+                nodeData.el.style.backgroundColor = `rgba(255,255,255,0.1)`;
+            } else {
+                nodeData.el.style.backgroundColor = `rgba(10,10,20,0.6)`;
+            }
+            nodeData.el.style.boxShadow = `0 0 ${nodeData.active * 40}px ${nodeData.color}`;
+        }
+
+        // Audio Boilerplate
+        function initAudio() {
+            if(audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            ['hypo', 'pit', 'adr'].forEach(k => {
+                const n = nodes[k]; n.osc = audioCtx.createOscillator(); n.gain = audioCtx.createGain(); n.gain.gain.value = 0;
+                n.osc.frequency.value = n.hz; n.osc.connect(n.gain); n.gain.connect(audioCtx.destination); n.osc.start();
+            });
+        }
+
+        document.getElementById('playBachBtn').addEventListener('click', (e) => {
+            initAudio(); isSequencing = !isSequencing;
+            document.body.classList.toggle('cinematic-mode', isSequencing);
+            e.target.innerText = isSequencing ? "■ STOP CORTISOL BACH" : "♪ SING BACH IN CORTISOL"; e.target.className = isSequencing ? "btn active" : "btn";
+            if(!isSequencing) { ['hypo', 'pit', 'adr'].forEach(k => { nodes[k].gain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05); document.getElementById('bulb-'+k).innerText='';}); }
+        });
+
+        setInterval(() => {
+            if(!isSequencing || !audioCtx) return;
+            const activeChord = bachSequence[playhead];
+            
+            // Explicitly kill oscillators before the next chord strike
+            ['hypo', 'pit', 'adr'].forEach(k => { nodes[k].gain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05); document.getElementById('bulb-'+k).innerText=''; document.getElementById('bulb-'+k).style.backgroundColor='#222'; });
+            
+            // Loop through the polyphonic array and execute simultaneous biological firing
+            activeChord.forEach(activeVal => {
+                if(activeVal === 0) return;
+                const data = freqMap[activeVal];
+                if(data.gland) {
+                    const n = nodes[data.gland]; n.active = 1.0; n.osc.frequency.setTargetAtTime(n.hz, audioCtx.currentTime, 0.01); n.gain.gain.setTargetAtTime(0.15, audioCtx.currentTime, 0.02);
+                    let bulb = document.getElementById('bulb-'+data.gland); bulb.innerText = data.note; bulb.style.backgroundColor = n.color;
+                    
+                    // Light up the honeycomb globally under the active DOM gland
+                    const rect = n.el.getBoundingClientRect(); const cx = rect.left + rect.width/2; const cy = rect.top + rect.height/2;
+                    let glandHexes = [];
+                    for(let h of hexes) { let dx=h.x-cx; let dy=h.y-cy; if(dx*dx+dy*dy < 12000) { h.glow = 1.0; h.honey = true; if(h.gland === data.gland) glandHexes.push(h); } }
+                    
+                    // Spectroscopic swarms wake from individual active cells inside the gland
+                    for(let i=0; i<12; i++) { 
+                        let sourceHex = glandHexes[Math.floor(Math.random() * glandHexes.length)] || {x: cx, y: cy};
+                        let b = new Bee(sourceHex.x, sourceHex.y, nodes.center.el, n.color, n.hz);
+                        b.wavePhase = (i / 12) * Math.PI * 2;
+                        b.x += (Math.random()*6 - 3); b.y += (Math.random()*6 - 3); // tiny intra-cellular scramble
+                        bees.push(b); 
+                    }
+                }
+            });
+            playhead = (playhead + 1) % bachSequence.length;
+        }, 300);
+
+        function draw(t) {
+            bgCtx.fillStyle = 'rgba(26, 26, 46, 0.2)'; bgCtx.fillRect(0, 0, W, H);
+            let superimposedValue = 0;
+            let bR = 0, bG = 0, bB = 0, act = 0;
+            
+            for(let key in nodes) {
+                let n = nodes[key]; n.active *= 0.95;
+                if(key !== 'center' && n.active > 0.01) {
+                    superimposedValue += Math.sin(timeTick * 0.03 * n.hz) * n.active;
+                    if(n.color==='#0a84ff') { bR+=10; bG+=132; bB+=255; }
+                    if(n.color==='#ff3b30') { bR+=255; bG+=59; bB+=48; }
+                    if(n.color==='#34c759') { bR+=52; bG+=199; bB+=89; }
+                    act++;
+                }
+            }
+            
+            if(act > 0) {
+                nodes.center.color = `rgb(${Math.floor(bR/act)}, ${Math.floor(bG/act)}, ${Math.floor(bB/act)})`;
+            } else {
+                nodes.center.color = '#34c759'; // return to homeostasis
+            }
+
+            // Exponential Zoom lerp
+            camera.zoom += (camera.targetZoom - camera.zoom) * 0.05;
+            // The camera center is anchored to the Receptor node so the universe shrinks around the center!
+            const focusX = nodes.center.cx || W/2;
+            const focusY = nodes.center.cy || H/2;
+            
+            // Socratic O(1) Datashader Bounds
+            const vMargin = (hexR * 4) / camera.zoom;
+            // Expand cull bounds slightly to ensure no screen-edge tearing during fast pans
+            const minX = focusX - (W/1.5)/camera.zoom - vMargin;
+            const maxX = focusX + (W/1.5)/camera.zoom + vMargin;
+            const minY = focusY - (H/1.5)/camera.zoom - vMargin;
+            const maxY = focusY + (H/1.5)/camera.zoom + vMargin;
+            
+            // True Datashader LOD threshold - Switch from Polygon drawing to Point Cloud drawing
+            const isMacro = camera.zoom < 0.3;
+
+            bgCtx.save();
+            bgCtx.translate(W/2, H/2);
+            bgCtx.scale(camera.zoom, camera.zoom);
+            bgCtx.translate(-focusX, -focusY);
+
+            // Scale DOM UI simultaneously
+            document.getElementById('graph-container').style.transform = `scale(${camera.zoom})`;
+            document.getElementById('graph-container').style.transformOrigin = `${focusX}px ${focusY}px`;
+
+            // Draw Tri-Graph Macro Organism (Background Matrix)
+            for (const h of hexes) {
+                // Socratic LOD Culling Engine: Drop off-screen calculations completely
+                if(h.x < minX || h.x > maxX || h.y < minY || h.y > maxY) continue;
+                
+                h.glow *= 0.92;
+                
+                // Beeping and Booping - Living Breathing Canvas Logic
+                let breathe = 0;
+                if (h.terrain === 'blood') {
+                    breathe = Math.pow(Math.sin(timeTick * 0.05 + h.pulse), 6); // Fast rigid heartbeat
+                } else if (h.terrain === 'nerve') {
+                    breathe = (Math.random() < 0.015) ? 1.0 : 0.0; // Sharp erratic synapse lightning
+                } else if (h.terrain === 'lymph') {
+                    breathe = (Math.sin(timeTick * 0.01 + h.pulse) + 1) / 2; // Extremely slow tidal ebb
+                } else {
+                    breathe = (Math.sin(timeTick * 0.005 + h.pulse) + 1) / 2 * 0.2; // Ambient base honeycomb
+                }
+                
+                // Global spontaneous geometric sparking
+                if(Math.random() < 0.0001) h.glow = 1.0; 
+
+                const heat = Math.max(breathe * 0.6, h.glow);
+                
+                let fill, stroke;
+                
+                // Infinite Topography Base (OG Blue/Gold Canvas)
+                fill = `rgba(10, 20, 40, ${0.1 + heat * 0.2})`; 
+                stroke = `rgba(50, 100, 200, ${0.1 + heat * 0.4})`;
+
+                if (h.gland) {
+                    let n = nodes[h.gland];
+                    
+                    // Glands are perfectly camouflaged in the ambient blue honeycomb until activated
+                    let rgb = {r:50, g:100, b:200}; 
+                    
+                    // Bach Sequencing Activation Math - The organelle waken and reveal their true Pantone
+                    if(n.active > 0.01) {
+                        if(n.color==='#0a84ff') rgb={r:10, g:132, b:255};
+                        else if(n.color==='#ff3b30') rgb={r:255, g:59, b:48};
+                        else if(n.color==='#34c759') rgb={r:52, g:199, b:89};
+                        else rgb={r:240, g:192, b:64}; // Center gold
+                        
+                        let hzBeat = Math.abs(Math.sin((timeTick * (n.hz/100) * 0.15) + h.pulse));
+                        heat = Math.max(heat, n.active * hzBeat * 2.0);
+                    }
+                    
+                    fill = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.1 + heat * 0.3})`;
+                    stroke = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${0.2 + heat * 0.6})`;
+                }
+                
+                // Nesterov swarms light up path intensely with pure glowing light
+                if(h.glow > 0.1) stroke = `rgba(240, 192, 64, ${h.glow})`;
+                
+                // Hardware Stabilization: Bypass 6-sided vector paths when zoomed out to render instantly
+                if (isMacro) {
+                    bgCtx.fillStyle = fill;
+                    bgCtx.fillRect(h.x - (hexR-2), h.y - Math.floor(hexH/2 - 2), (hexR-2)*2, Math.floor(hexH/2 - 2)*2);
+                } else {
+                    drawHex(h.x, h.y, hexR - 1, fill, stroke);
+                }
+            }
+
+            // Central Physiology Connecting Lines (Middle Layer)
+            const cRect = nodes.center.el.getBoundingClientRect(); const cx = cRect.left + cRect.width/2; const cy = cRect.top + cRect.height/2;
+            ['hypo', 'pit', 'adr'].forEach(k => {
+                const n = nodes[k]; const rect = n.el.getBoundingClientRect(); const nx = rect.left + rect.width/2; const ny = rect.top + rect.height/2;
+                bgCtx.beginPath(); bgCtx.moveTo(nx, ny); bgCtx.lineTo(cx, cy); 
+                
+                if(n.active > 0.01) { 
+                    // Network-Specific Delivery Animations
+                    if (n.type === 'nerve') {
+                        // High-speed electrical dashing
+                        if(timeTick % 2 === 0) bgCtx.setLineDash([5, 15]); else bgCtx.setLineDash([]);
+                        bgCtx.lineDashOffset = -timeTick * 5; 
+                        bgCtx.lineWidth = 2 + Math.random() * 3;
+                    } else if (n.type === 'blood') {
+                        // Thick rolling cardiovascular vessel
+                        bgCtx.setLineDash([40, 20]);
+                        bgCtx.lineDashOffset = -timeTick * 2; 
+                        bgCtx.lineWidth = 6 + Math.sin(timeTick * 0.2) * 2;
+                    } else if (n.type === 'lymph') {
+                        // Segmented slow biological duct
+                        bgCtx.setLineDash([15, 10]);
+                        bgCtx.lineDashOffset = -timeTick; 
+                        bgCtx.lineWidth = 3;
+                    }
+                    bgCtx.strokeStyle = n.color; 
+                } else {
+                    bgCtx.setLineDash([]);
+                    bgCtx.strokeStyle = `rgba(255,255,255,0.02)`; 
+                    bgCtx.lineWidth = 1;
+                }
+                bgCtx.stroke(); bgCtx.setLineDash([]);
+            });
+
+            // Update Inner UI Scopes (Foreground Claude DOM removed, rely entirely on Canvas Macro Hexes)
+            // Render Target Cell FFT Decoder UI
+            bloodBuffer.push(superimposedValue); bloodBuffer.shift();
+            let cCtx = nodes.center.cvs.getContext('2d'); nodes.center.cvs.width = nodes.center.cvs.clientWidth; nodes.center.cvs.height = nodes.center.cvs.clientHeight;
+            cCtx.clearRect(0,0,nodes.center.cvs.width,nodes.center.cvs.height);
+            cCtx.beginPath(); cCtx.strokeStyle = nodes.center.color; cCtx.shadowColor = nodes.center.color; cCtx.shadowBlur = nodes.center.active * 15; cCtx.lineWidth=2;
+            const dx = nodes.center.cvs.width / bloodBuffer.length;
+            for(let i=0; i<bloodBuffer.length; i++) {
+                let x = i * dx; let y = (nodes.center.cvs.height/2) - (bloodBuffer[i] * 12);
+                if(i===0) cCtx.moveTo(x, y); else cCtx.lineTo(x, y);
+            }
+            cCtx.stroke(); cCtx.shadowBlur = 0;
+
+            bgCtx.restore();
+
+            // Striped Bees (Top Canvas Layer) are drawn absolutely but must conform to camera math visually
+            for (let i = bees.length - 1; i >= 0; i--) { 
+                let b = bees[i]; b.update(t); 
+                bgCtx.save();
+                bgCtx.translate(W/2, H/2); bgCtx.scale(camera.zoom, camera.zoom); bgCtx.translate(-focusX, -focusY);
+                // Stop rendering tiny bees at extreme macro zoom
+                if(camera.zoom > 0.15) b.draw(bgCtx, t); 
+                bgCtx.restore();
+                if(b.dead) bees.splice(i, 1); 
+            }
+
+            // Hive Status HUD
+            if (timeTick % 60 === 0) {
+                const litCount = hexes.filter(h => h.glow > 0.1 && h.x > minX && h.x < maxX && h.y > minY && h.y < maxY).length;
+                document.getElementById('hud').innerHTML = `SOCRATIC LOD SYSTEM ACTIVE<br>MACRO HEXES BUFFERED: ${hexes.length}<br>BEES IN FLIGHT: ${bees.length}<br>FFT STREAM: ${superimposedValue.toFixed(2)}<br>VISIBLE HONEY CELLS: ${litCount}<br>ZOOM RATIO: ${camera.zoom.toFixed(4)}`;
+            }
+
+            timeTick++;
+            requestAnimationFrame(draw);
+        }
+        requestAnimationFrame(draw);
+    </script>
+</body>
+</html>
