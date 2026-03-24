@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DRT Phase 4: Claude Canvas + Hive-Buzz Master Fusion</title>
+    <title>DRT Phase 4: Neural Canvas + Hex Master Fusion</title>
     <style>
         body { margin: 0; background: #1a1a2e; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
         
@@ -53,7 +53,7 @@
 <body>
     <div class="header">
         THE BIO BRAIN V4
-        <div class="sub-header" style="color:#2ad0ff;">CLAUDE CANVAS FUSION · ORIGINAL YELLOW HONEYCOMB AESHTETIC</div>
+        <div class="sub-header" style="color:#2ad0ff;">NEURAL CANVAS FUSION · ORIGINAL YELLOW HEXAGONAL AESTHETIC</div>
         
         <div style="display:flex; gap:10px; margin-top:15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; justify-content:center; pointer-events:auto;">
             <a href="generator.html" class="nav-link" style="color:#ff3b30; border-color:#ff3b30;">01 COMPOSER</a>
@@ -127,7 +127,7 @@
         const bachSequence = [[1, 5], [0], [7, 3], [0], [1, 4], [0], [5, 2], [0], [6, 1], [1, 7], [7, 5], [1], [2], [5, 3], [0], [1], [7, 4], [1], [2], [4, 6], [3], [2], [3, 5], [0]];
         let playhead = 0; let audioCtx;
 
-        // HIVE-BUZZ BACKGROUND LOGIC + SOCRATIC INIFNITE LOD CAMERA
+        // HEX BACKGROUND LOGIC + SOCRATIC INFINITE LOD CAMERA
         const bgCvs = document.getElementById('bgCanvas');
         const bgCtx = bgCvs.getContext('2d');
         let W, H;
@@ -184,7 +184,7 @@
                         else terrain = 'base';
                     }
                     
-                    hexes.push({ x, y, glow: 0, terrain, gland, honey: false, pulse: Math.random() * Math.PI * 2 });
+                    hexes.push({ x, y, glow: 0, terrain, gland, warm: false, pulse: Math.random() * Math.PI * 2 });
                 }
             }
         }
@@ -204,8 +204,8 @@
             if (stroke) { bgCtx.strokeStyle = stroke; bgCtx.lineWidth = 1; bgCtx.stroke(); }
         }
 
-        // HZ SPECTROSCOPY FLIGHT BEES
-        class Bee {
+        // HZ SPECTROSCOPY FLIGHT PARTICLES
+        class Particle {
             constructor(startX, startY, targetEl, glowColorHex, hz) {
                 this.x = startX; this.y = startY;
                 this.hz = hz || 100;
@@ -347,12 +347,12 @@
                     // Light up the honeycomb globally under the active DOM gland
                     const rect = n.el.getBoundingClientRect(); const cx = rect.left + rect.width/2; const cy = rect.top + rect.height/2;
                     let glandHexes = [];
-                    for(let h of hexes) { let dx=h.x-cx; let dy=h.y-cy; if(dx*dx+dy*dy < 12000) { h.glow = 1.0; h.honey = true; if(h.gland === data.gland) glandHexes.push(h); } }
+                    for(let h of hexes) { let dx=h.x-cx; let dy=h.y-cy; if(dx*dx+dy*dy < 12000) { h.glow = 1.0; h.warm = true; if(h.gland === data.gland) glandHexes.push(h); } }
                     
                     // Spectroscopic swarms wake from individual active cells inside the gland
                     for(let i=0; i<12; i++) { 
                         let sourceHex = glandHexes[Math.floor(Math.random() * glandHexes.length)] || {x: cx, y: cy};
-                        let b = new Bee(sourceHex.x, sourceHex.y, nodes.center.el, n.color, n.hz);
+                        let b = new Particle(sourceHex.x, sourceHex.y, nodes.center.el, n.color, n.hz);
                         b.wavePhase = (i / 12) * Math.PI * 2;
                         b.x += (Math.random()*6 - 3); b.y += (Math.random()*6 - 3); // tiny intra-cellular scramble
                         bees.push(b); 

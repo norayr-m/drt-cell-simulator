@@ -55,7 +55,7 @@
 </nav>
     <div class="header">
         THE BIO BRAIN V4
-        <div class="sub-header">CLAUDE CANVAS FUSION · BEEHIVE HPA AXIS RECONSTRUCTION</div>
+        <div class="sub-header">NEURAL CANVAS FUSION · HPA AXIS RECONSTRUCTION</div>
         
     </div>
 
@@ -222,7 +222,7 @@
             playhead = (playhead + 1) % bachSequence.length;
         }, 300);
 
-        // V4: CLAUDE FUSION - THE BEEHIVE CIVILIZATION MATH
+        // V4: NEURAL FUSION - THE HEXAGONAL CIVILIZATION MATH
         function drawHexCivilization(ctx, width, height, hz, active, color) {
             ctx.clearRect(0, 0, width, height);
             
@@ -278,7 +278,7 @@
                     ctx.strokeStyle = active ? color : '#fff';
                     ctx.stroke();
                     
-                    // Nesterov Honeybee Particles
+                    // Nesterov Momentum Particles
                     if (active && Math.random() < pulse * 0.08) {
                         ctx.globalAlpha = alpha * 1.5;
                         ctx.beginPath();
@@ -295,7 +295,7 @@
         }
 
         let bloodBuffer = Array(250).fill(0);
-        let flyingBees = [];
+        let flyingNodes = [];
 
         function renderLoop() {
             bgCvs.width = window.innerWidth; bgCvs.height = window.innerHeight;
@@ -314,7 +314,7 @@
                 n.cvs.width = n.cvs.clientWidth; n.cvs.height = n.cvs.clientHeight;
                 const ctx = n.cvs.getContext('2d');
                 
-                // Render the fused Beehive Civilization inside Claude's structured node boundaries
+                // Render the fused hexagonal civilization inside structured node boundaries
                 drawHexCivilization(ctx, n.cvs.width, n.cvs.height, n.hz, n.active, n.color);
 
                 if(n.active) superimposedValue += Math.sin(timeTick * 0.03 * n.hz);
@@ -333,7 +333,7 @@
                     bgCtx.setLineDash([10, 20]);
                     bgCtx.lineDashOffset = -(timeTick * (n.hz/100));
                     if (Math.random() < 0.1) {
-                        flyingBees.push({ x: nx, y: ny, tx: cx, ty: cy, p: 0, s: 0.005 + (n.hz/60000), c: n.color, seed: Math.random() * 10 });
+                        flyingNodes.push({ x: nx, y: ny, tx: cx, ty: cy, p: 0, s: 0.005 + (n.hz/60000), c: n.color, seed: Math.random() * 10 });
                     }
                 } else {
                     bgCtx.setLineDash([]);
@@ -354,12 +354,12 @@
                 }
             });
 
-            // DRAW AND UPDATE FLYING BEES
-            for (let i = flyingBees.length - 1; i >= 0; i--) {
-                let b = flyingBees[i];
+            // DRAW AND UPDATE FLYING NODES
+            for (let i = flyingNodes.length - 1; i >= 0; i--) {
+                let b = flyingNodes[i];
                 b.p += b.s;
                 if (b.p >= 1) {
-                    flyingBees.splice(i, 1);
+                    flyingNodes.splice(i, 1);
                     continue;
                 }
                 let curX = b.x + (b.tx - b.x) * b.p;
