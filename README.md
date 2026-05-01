@@ -27,7 +27,19 @@ git clone https://github.com/norayr-m/drt-cell-simulator.git
 open drt-cell-simulator/index.html
 ```
 
-The `digital_twin.html` companion file is a more biology-leaning variant, same engine.
+The `digital_twin.html` companion file is a more biology-leaning variant, same engine — a [zoom-out bio digital twin](https://norayr-m.github.io/drt-cell-simulator/digital_twin.html) where bio-brain-like structures tile millions of times all working at the same time. That demo was a Savanna prototype: the chromatic parallel scheduling pattern at 17 billion ops per second on M5 Max, the ternary metabolic states, the sense → compute → emit per cell — those choices informed Savanna's architecture.
+
+## The trio — generator, cell simulator, scanner
+
+This repo is one of three that snap together into one workflow:
+
+1. **[drt-generator](https://github.com/norayr-m/drt-generator)** — produces sparse projection matrices from a clock tick.
+2. **drt-cell-simulator** (this repo) — receives the projections as cellular automata on graph topology. Each cell is a *receptor* with local rules over its neighbours' edges. The signal arrives at each cell as a per-tick projection; the cell's local rules combine the projection with its own state to produce the next-tick state.
+3. **[drt-scanner](https://github.com/norayr-m/drt-scanner)** — runs the transpose pass for reconstruction-fidelity verification.
+
+End to end is *generator → cell simulator → scanner* — forward pass plus backward pass through the same matrices. Every step is sparse matrix-vector multiplication. The applied target is **bio digital twins** at tissue scale: the cell simulator's receptor field is exactly where biological cells receive signals through tissue connectivity (gap junctions, sinusoid topology, synaptic connectivity), and where local rules become Hill functions, Michaelis-Menten saturations, small ODE steps.
+
+Full write-up: **[Generator, Cell Simulator, Scanner — a sparse matrix-vector trio for bio digital twins](https://norayr-m.github.io/drt-generator/whitepaper.html)** ([markdown source](https://norayr-m.github.io/drt-generator/whitepaper.md)).
 
 ## References
 
