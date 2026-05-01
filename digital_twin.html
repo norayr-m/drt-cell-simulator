@@ -52,20 +52,19 @@
 </head>
 <body>
     <div class="header">
-        THE BIO BRAIN V4
-        <div class="sub-header" style="color:#2ad0ff;">NEURAL CANVAS FUSION · ORIGINAL YELLOW HEXAGONAL AESTHETIC</div>
-        
+        PROTOTYPE
+        <div class="sub-header" style="color:#2ad0ff;">BIO DIGITAL TWIN · INFINITE LOD ZOOM · HPA AXIS RECEPTOR</div>
+
         <div style="display:flex; gap:10px; margin-top:15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; justify-content:center; pointer-events:auto;">
-            <a href="generator.html" class="nav-link" style="color:#ff3b30; border-color:#ff3b30;">01 COMPOSER</a>
-            <a href="scanner.html" class="nav-link" style="color:#ff9f0a; border-color:#ff9f0a;">02 SCANNER</a>
-            <a href="pipeline.html" class="nav-link" style="color:#e07060; border-color:#e07060;">03 PIPELINE</a>
-            <a href="cell_simulator.html" class="nav-link" style="color:#f0c040; border-color:#f0c040; background:rgba(240,192,64,0.1);">04 BIO BRAIN</a>
-            <a href="harmonic_solver.html" class="nav-link" style="color:#0a84ff; border-color:#0a84ff;">05 ORBITAL SOLVER</a>
-            <a href="supernova_solver.html" class="nav-link" style="color:#d0b060; border-color:#d0b060;">06 SUPERNOVA 3D</a>
+            <a href="https://norayr-m.github.io/drt-generator/" class="nav-link" style="color:#ff3b30; border-color:#ff3b30;">01 COMPOSER</a>
+            <a href="https://norayr-m.github.io/drt-scanner/" class="nav-link" style="color:#ff9f0a; border-color:#ff9f0a;">02 SCANNER</a>
+            <a href="https://norayr-m.github.io/drt-pipeline/" class="nav-link" style="color:#e07060; border-color:#e07060;">03 PIPELINE</a>
+            <a href="https://norayr-m.github.io/drt-cell-simulator/" class="nav-link" style="color:#34c759; border-color:#34c759;">04 RECEPTOR CELL SIM</a>
+            <a href="#" class="nav-link" style="color:#0a84ff; border-color:#0a84ff; background:rgba(10,132,255,0.15); box-shadow:0 0 15px rgba(10,132,255,0.2);">05 BIO D TWIN PROTOTYPE</a>
         </div>
     </div>
 
-    <div id="hud">INIT BIO BRAIN...</div>
+    <div id="hud">INIT PROTOTYPE...</div>
 
     <canvas id="bgCanvas"></canvas>
 
@@ -406,9 +405,13 @@
             bgCtx.scale(camera.zoom, camera.zoom);
             bgCtx.translate(-focusX, -focusY);
 
-            // Scale DOM UI simultaneously
+            // Scale DOM UI simultaneously. Anchor transform-origin to the
+            // graph-container's own visual center so the four HPA sites
+            // (hypothalamus / pituitary / adrenal / receptor) shrink in
+            // place instead of drifting toward an off-box world coordinate
+            // as zoom decreases.
             document.getElementById('graph-container').style.transform = `scale(${camera.zoom})`;
-            document.getElementById('graph-container').style.transformOrigin = `${focusX}px ${focusY}px`;
+            document.getElementById('graph-container').style.transformOrigin = `50% 50%`;
 
             // Draw Tri-Graph Macro Organism (Background Matrix)
             for (const h of hexes) {
