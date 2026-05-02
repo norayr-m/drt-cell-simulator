@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DRT_Cell_Simulator — receptor cells on graph topology</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1408; color: #a09070; font: 16px/1.8 'Georgia', serif; padding: 40px 20px; max-width: 820px; margin: 0 auto; }
+  h1 { color: #c4a35a; font: 28px/1.3 'SF Mono', 'Menlo', 'Courier New', monospace; letter-spacing: 2px; margin-bottom: 8px; }
+  h2 { color: #c4a35a; font: 22px/1.4 'SF Mono', 'Menlo', 'Courier New', monospace; margin: 36px 0 12px; border-bottom: 1px solid rgba(138,122,90,0.2); padding-bottom: 6px; }
+  h3 { color: #8a7a5a; font: 17px/1.4 'SF Mono', 'Menlo', 'Courier New', monospace; margin: 24px 0 10px; }
+  p { margin-bottom: 14px; }
+  ul, ol { margin: 10px 0 14px 28px; }
+  li { margin: 6px 0; }
+  a { color: #c4a35a; text-decoration: none; border-bottom: 1px dotted rgba(196,163,90,0.4); }
+  a:hover { border-bottom-color: #c4a35a; }
+  code { background: rgba(138,122,90,0.15); padding: 2px 6px; border-radius: 3px; font: 14px 'SF Mono', monospace; color: #c4a35a; }
+  pre { background: rgba(26,20,8,0.9); border: 1px solid rgba(138,122,90,0.2); border-radius: 8px; padding: 14px 18px; overflow-x: auto; margin: 14px 0; font: 13px/1.6 'SF Mono', 'Menlo', monospace; color: #8a7a5a; }
+  pre code { background: none; padding: 0; color: #c4a35a; font-size: inherit; }
+  blockquote { border-left: 3px solid #c4a35a; padding: 8px 18px; margin: 14px 0; color: #8a7a5a; font-style: italic; background: rgba(138,122,90,0.06); border-radius: 0 6px 6px 0; }
+  blockquote strong { color: #c4a35a; font-style: normal; }
+  hr { border: none; border-top: 1px solid rgba(138,122,90,0.2); margin: 30px 0; }
+  .subtitle { color: #5a4a2a; font-style: italic; margin-bottom: 20px; font-size: 16px; }
+  .toc { background: rgba(26,20,8,0.6); border: 1px solid rgba(138,122,90,0.15); border-radius: 8px; padding: 18px 24px; margin: 20px 0 30px; }
+  .toc h2 { font-size: 17px; margin: 0 0 10px; border: none; padding: 0; }
+  .toc ul { margin: 0 0 0 20px; font-size: 14px; }
+  .toc li { margin: 3px 0; }
+  .hl { color: #c4a35a; font-weight: bold; }
+  .credit { color: #5a4a2a; font-size: 13px; border-top: 1px solid rgba(138,122,90,0.15); padding-top: 18px; margin-top: 30px; }
+  .nav { color: #5a4a2a; font: 13px 'SF Mono', monospace; margin-bottom: 20px; }
+  .nav a { color: #c4a35a; }
+  h2[id], h3[id] { scroll-margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="index.html">← back to drt-cell-simulator (live demo)</a> &middot;
+  <a href="digital_twin.html">bio digital twin prototype</a> &middot;
+  <a href="https://github.com/norayr-m/drt-cell-simulator">repository</a> &middot;
+  <a href="whitepaper.md">markdown source</a> &middot;
+  <a href="https://norayr-m.github.io/drt-generator/whitepaper.html">trio paper</a>
+</div>
+
+<h1>DRT_Cell_Simulator</h1>
+<p class="subtitle">Receptor cells on graph topology — companion to the trio paper.</p>
+
+<blockquote>
+  <p><strong>Humble disclaimer.</strong> Amateur engineering project. We are not HPC professionals and make no competitive claims. Errors are likely. The simulator is a <em>visualisation</em>, not a quantitative biological model — see <a href="#not">What is not in the paper</a>.</p>
+  <p>GPLv3.</p>
+</blockquote>
+
+<div class="toc">
+  <h2>Contents</h2>
+  <ul>
+    <li><a href="#what">What it is</a></li>
+    <li><a href="#why">Why it matters — bio digital twins</a></li>
+    <li><a href="#how">How it works — graph cells under a tick</a></li>
+    <li><a href="#reading">Reading the output — HUD and what to watch</a></li>
+    <li><a href="#prototype">The bio digital twin prototype — <code>digital_twin.html</code></a></li>
+    <li><a href="#not">What is not in the paper</a></li>
+    <li><a href="#refs">References and the trio</a></li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="what">What it is</h2>
+
+<p>A browser demo where a population of small <em>cells</em> sit on a graph (not a regular grid), each cell holds a small piece of internal state, and at every tick each cell updates its state from the states of its immediate neighbours. There is no global controller. The whole-screen picture is whatever the local rules add up to over many ticks.</p>
+
+<p>A second layer wraps the cellular substrate in a piece of human endocrine biology — the hypothalamic–pituitary–adrenal (HPA) stress-response loop — and uses Bach's BWV 847 fugue as the timing source that drives the simulation. So the demo simultaneously shows three things on one screen: cellular automata on a non-grid graph, a toy reconstruction of a biological feedback loop, and music as the clock that drives both.</p>
+
+<p>The repository ships a second, related visualisation in the same browser tab: <code>digital_twin.html</code> — the bio digital twin prototype with an infinite level-of-detail (LOD) zoom-out camera. That file is described in <a href="#prototype">its own section below</a>.</p>
+
+<p><strong><a href="https://norayr-m.github.io/drt-cell-simulator/">Live demo →</a></strong></p>
+
+<hr>
+
+<h2 id="why">Why it matters — bio digital twins</h2>
+
+<p>A bio digital twin is a computational model of a specific biological system — a heart chamber, a hepatic lobule, a section of cortex — wired tightly enough that it can predict the system's behaviour under a stimulus. Most realistic biological tissues are <em>not</em> organised as regular grids; they are graphs, with each cell coupled to a small number of irregular neighbours determined by tissue topology rather than by a Cartesian lattice.</p>
+
+<p>The cell simulator addresses one specific slice of the bio digital twin question: <em>what does cellular dynamics look like when the underlying topology is a graph rather than a grid, and the per-cell rule is a small local function over the neighbours' states?</em> That is the structural shape that hepatocytes in a hepatic lobule, neurons in a cortical microcolumn, and cardiomyocytes in a ventricular wall all share. Building a useful bio digital twin requires being able to compute on that shape.</p>
+
+<p>The HPA-axis layer adds one specific concrete use: a small endocrine feedback loop with three named glands (hypothalamus, pituitary, adrenal) and a central receptor that integrates their outputs. The demo is not a quantitative endocrine model — it is a visual playground for the shape "small graph of receptors with a feedback loop driven by a periodic signal." The Bach fugue plays the role of the periodic signal because BWV 847 is mathematically clean (well-defined entries, inversions, augmentations) and because hearing it makes the cellular dynamics easier to follow.</p>
+
+<p>The framing for the trio (generator + cell simulator + scanner) is the <a href="https://norayr-m.github.io/drt-generator/whitepaper.html">trio white paper</a>. This paper drills into the cell simulator specifically.</p>
+
+<hr>
+
+<h2 id="how">How it works — graph cells under a tick</h2>
+
+<p>The substrate is a graph <code>G = (V, E)</code> where <code>V</code> is the set of cells and <code>E</code> is the local-coupling edge set. Each cell <code>i ∈ V</code> holds:</p>
+
+<ul>
+  <li>a state value <code>s_i</code> (a small number — colour, energy, activity);</li>
+  <li>a local rule <code>f_i</code> that maps the states of its neighbours <code>N(i)</code> to its next state.</li>
+</ul>
+
+<p>At every tick the engine applies the local rule synchronously across all cells:</p>
+
+<pre><code>for each cell i:
+    s_i_new = f_i( { s_j : j in N(i) } )
+update all s_i = s_i_new at the tick boundary</code></pre>
+
+<p>The synchronous update is structurally important: every cell sees the <em>previous</em> tick's neighbour states, never a partially-updated mix. That is the same discipline that synchronous logic uses on FPGAs and that the BACK_EDGE primitive uses in the companion DagDB engine — the tick boundary is a hard barrier between "the values everyone agrees were true last tick" and "the values being computed for this tick."</p>
+
+<p>The HPA layer adds four named cells on top of the substrate: a hypothalamus cell (CRH at 150 Hz), a pituitary cell (ACTH at 250 Hz), an adrenal cell (cortisol at 350 Hz), and a central receptor cell that integrates their outputs. Each named cell has its own glow colour and its own audio frequency contribution. Pressing the gland buttons in the live demo causes that gland to "secrete" — its output rises, and the receptor's integrated signal rises in response.</p>
+
+<p>The Bach BWV 847 audio drives the global tick rate. As notes fire in the score, the corresponding cellular activity peaks: the demo's audio and visual layers run on the same time index. This is for legibility, not for biological accuracy — biological circadian and ultradian rhythms are not BWV 847.</p>
+
+<hr>
+
+<h2 id="reading">Reading the output — HUD and what to watch</h2>
+
+<p>The HUD shows three things continuously:</p>
+
+<ul>
+  <li><span class="hl">Active cells</span> — how many cells in the substrate are currently above the activity threshold.</li>
+  <li><span class="hl">Glands</span> — per-gland activity for hypothalamus, pituitary, adrenal, with the receptor's integrated value.</li>
+  <li><span class="hl">Tick</span> — the simulation tick counter.</li>
+</ul>
+
+<p>On the screen, three things are visible:</p>
+
+<ul>
+  <li><span class="hl">The graph</span> — a clear picture of the cell topology, with active cells lit and inactive cells dim.</li>
+  <li><span class="hl">The four named cells</span> — the HPA glands and the central receptor, drawn larger than the substrate cells, with their own canvases showing their per-tick output traces.</li>
+  <li><span class="hl">The audio</span> — Bach BWV 847 driving the timing. There is a mute toggle for those who prefer to watch silently.</li>
+</ul>
+
+<p>Press a gland button to inject a transient. Watch the receptor integrate. Watch the substrate ripple as activity propagates out. Watch the HUD numbers settle as the system returns to its baseline.</p>
+
+<hr>
+
+<h2 id="prototype">The bio digital twin prototype — <code>digital_twin.html</code></h2>
+
+<p>The same repository ships a second visualisation file, <code>digital_twin.html</code>, intended as a prototype of what a tissue-scale bio digital twin viewer might look like. It uses the same HPA-axis layer but adds a Socratic infinite-LOD zoom-out camera over a much larger cellular substrate.</p>
+
+<p>Two things distinguish it from the main <code>index.html</code> demo:</p>
+
+<ul>
+  <li><span class="hl">Camera.</span> The user can zoom out to see the entire substrate at once; the renderer switches automatically from polygon drawing to point-cloud drawing once the per-cell pixel size drops below a threshold (Datashader-style LOD). This makes it possible to see a single coherent picture across a wide range of zoom levels without rendering cost exploding.</li>
+  <li><span class="hl">Scale framing.</span> The substrate is drawn as if it were a tissue cross-section, with the four named glands sitting at fixed positions and the cellular ripples visible at every zoom level.</li>
+</ul>
+
+<p>Open the prototype directly at <strong><a href="https://norayr-m.github.io/drt-cell-simulator/digital_twin.html"><code>digital_twin.html</code></a></strong>. The same anti-claim discipline applies: this is a <em>prototype</em> of a viewer, not a validated bio digital twin. The biology layer is illustrative; the LOD camera is the engineering point.</p>
+
+<hr>
+
+<h2 id="not">What is not in the paper</h2>
+
+<p>The honest list of what this paper deliberately does not claim:</p>
+
+<ul>
+  <li><span class="hl">A quantitative endocrine model.</span> The HPA-axis layer is a four-cell visual playground. Real endocrine modelling involves continuous-valued ODEs, individualised parameter fitting, and clinical validation. None of that is here.</li>
+  <li><span class="hl">A norm-growth claim.</span> Earlier prose around this family of demos asserted that the aggregate of many partial views had bigger norm than the original signal — that <code>‖R(f)‖ &gt; ‖f‖</code>. That inequality has been retracted in the v0.1 draft. The current claim is conditional and weaker: under four hypotheses and a bounded computational budget, the aggregate exposes structural features that are not accessible from the original signal alone within the same budget. The cell simulator is a visualisation of cellular dynamics on a graph, not a proof of the conditional claim.</li>
+  <li><span class="hl">A tissue-scale bio digital twin.</span> The prototype is a viewer, not a tissue model. Building a useful tissue-scale twin requires per-cell biological parameters, validated coupling rules, and external boundary conditions from clinical data. The demo provides none of those.</li>
+  <li><span class="hl">A speedup benchmark.</span> The simulator is browser JavaScript on a single CPU thread, not a benchmarked GPU compute kernel. The companion engine in the DagDB repository runs the same shape of computation on the GPU at much higher throughput; that is the path to real-time tissue-scale work.</li>
+</ul>
+
+<hr>
+
+<h2 id="refs">References and the trio</h2>
+
+<p>This repository is one of three that snap together into one workflow:</p>
+
+<ol>
+  <li><strong><a href="https://github.com/norayr-m/drt-generator">drt-generator</a></strong> — produces sparse projection matrices from a clock tick.</li>
+  <li><strong>drt-cell-simulator</strong> (this repo) — receives the projections as cellular automata on graph topology. Each cell is a <em>receptor</em> with local rules over its neighbours' edges.</li>
+  <li><strong><a href="https://github.com/norayr-m/drt-scanner">drt-scanner</a></strong> — runs the transpose pass for inversion-fidelity verification.</li>
+</ol>
+
+<p>End to end is <em>generator → cell simulator → scanner</em> — forward pass plus backward pass through the same matrices. Every step is sparse matrix-vector multiplication on a graph topology.</p>
+
+<p>Trio framing in detail: <a href="https://norayr-m.github.io/drt-generator/whitepaper.html"><strong>Generator, Cell Simulator, Scanner — a sparse matrix-vector trio for bio digital twins</strong></a> (<a href="https://norayr-m.github.io/drt-generator/whitepaper.md">markdown source</a>).</p>
+
+<p>Distributed Reconstruction work — v0.1 in preparation by N. Matevosyan and A. Petrosyan.</p>
+
+<p>Visualization co-authored with Claude (Anthropic).</p>
+
+<div class="credit">
+  <blockquote>
+    <p><strong>Humble disclaimer.</strong> Amateur engineering project. We are not HPC professionals and make no competitive claims. Numbers speak; ego doesn't. Errors likely.</p>
+  </blockquote>
+  <p>GPLv3. See <a href="LICENSE">LICENSE</a>. &middot; <a href="whitepaper.md">Markdown source</a>.</p>
+</div>
+
+</body>
+</html>
